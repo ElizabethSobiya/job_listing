@@ -1,4 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { connect } from 'react-redux';
+import {
+  fetchJobListingsRequest,
+  fetchJobListingsSuccess,
+  fetchJobListingsFailure,
+} from '../redux/actions';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
@@ -10,11 +16,16 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 
-function JobListingCards() {
-  const [jobListings, setJobListings] = useState([]);
-  const [loading, setLoading] = useState(false);
+function JobListingCards({
+  jobListings,
+//   loading,
+  fetchJobListingsRequest,
+  fetchJobListingsSuccess,
+  fetchJobListingsFailure,
+}) {
   const [openModal, setOpenModal] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
+  const [loading, setLoading] = useState(false)
+   const [selectedJob, setSelectedJob] = useState(null);
   const [limit, setLimit] = useState(10);
   const [offset, setOffset] = useState(0);
   const loaderRef = useRef(null);
@@ -50,6 +61,7 @@ function JobListingCards() {
   };
 
   const fetchData = async () => {
+    fetchJobListingsRequest();
     setLoading(true);
     const body = JSON.stringify({ limit, offset });
     const myHeaders = new Headers();
@@ -61,16 +73,16 @@ function JobListingCards() {
     };
 
     try {
-      const response = await fetch("https://api.weekday.technology/adhoc/getSampleJdJSON", requestOptions);
-      if (response.ok) {
-        const data = await response.json();
-        setJobListings((prevListings) => [...prevListings, ...data.jdList]);
-      } else {
-        console.error("Failed to fetch job listings");
-      }
-    } catch (error) {
-      console.error("Error fetching job listings:", error);
-    } finally {
+        const response = await fetch("https://api.weekday.technology/adhoc/getSampleJdJSON", requestOptions);
+        if (response.ok) {
+          const data = await response.json();
+          fetchJobListingsSuccess(data.jdList);
+        } else {
+          fetchJobListingsFailure("Failed to fetch job listings");
+        }
+      } catch (error) {
+        fetchJobListingsFailure("Error fetching job listings");
+      } finally {
       setLoading(false);
     }
   };
@@ -99,6 +111,17 @@ function JobListingCards() {
     </Grid>
   );
 }
+
+const mapStateToProps = (state) => ({
+  jobListings: state.listings,
+  loading: state.loading,
+});
+
+const mapDispatchToProps = {
+  fetchJobListingsRequest,
+  fetchJobListingsSuccess,
+  fetchJobListingsFailure,
+};
 
 function JobCard({ job, openModal }) {
   if (!job) return null;
@@ -166,4 +189,4 @@ function JobModal({ open, onClose, job }) {
   );
 }
 
-export default JobListingCards;
+export default connect(mapStateToProps, mapDispatchToProps)(JobListingCards);
