@@ -1,43 +1,32 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { connect } from 'react-redux';
-import {
-  fetchJobListingsRequest,
-  fetchJobListingsSuccess,
-  fetchJobListingsFailure,
-} from '../redux/actions';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import CircularProgress from '@mui/material/CircularProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
+import React, { useEffect, useState, useRef } from "react";
+import { connect } from "react-redux";
+import { fetchJobListings } from "../redux/actions";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import CircularProgress from "@mui/material/CircularProgress";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
 
-function JobListingCards({
-  jobListings,
-//   loading,
-  fetchJobListingsRequest,
-  fetchJobListingsSuccess,
-  fetchJobListingsFailure,
-}) {
+function JobListingCards({ jobListings, loading, fetchJobListings }) {
   const [openModal, setOpenModal] = useState(false);
-  const [loading, setLoading] = useState(false)
-   const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedJob, setSelectedJob] = useState(null);
   const [limit, setLimit] = useState(10);
   const [offset, setOffset] = useState(0);
   const loaderRef = useRef(null);
 
   useEffect(() => {
-    fetchData();
-  }, [limit, offset]);
+    fetchJobListings(limit, offset); // Dispatch action to fetch job listings
+  }, [fetchJobListings, limit, offset]);
 
   useEffect(() => {
     const options = {
       root: null,
-      rootMargin: '20px',
+      rootMargin: "20px",
       threshold: 1.0,
     };
 
@@ -60,33 +49,6 @@ function JobListingCards({
     }
   };
 
-  const fetchData = async () => {
-    fetchJobListingsRequest();
-    setLoading(true);
-    const body = JSON.stringify({ limit, offset });
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-    const requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body
-    };
-
-    try {
-        const response = await fetch("https://api.weekday.technology/adhoc/getSampleJdJSON", requestOptions);
-        if (response.ok) {
-          const data = await response.json();
-          fetchJobListingsSuccess(data.jdList);
-        } else {
-          fetchJobListingsFailure("Failed to fetch job listings");
-        }
-      } catch (error) {
-        fetchJobListingsFailure("Error fetching job listings");
-      } finally {
-      setLoading(false);
-    }
-  };
-
   const openJobModal = (job) => {
     setSelectedJob(job);
     setOpenModal(true);
@@ -97,13 +59,13 @@ function JobListingCards({
   };
 
   return (
-    <Grid container spacing={4}  >
+    <Grid container spacing={4}>
       {jobListings.map((job, index) => (
         <Grid item xs={12} sm={6} md={3} xl={2} lg={3} key={index}>
           <JobCard job={job} openModal={openJobModal} />
         </Grid>
       ))}
-      <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
+      <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
         {loading && <CircularProgress />}
       </Grid>
       <div ref={loaderRef}></div>
@@ -117,19 +79,29 @@ const mapStateToProps = (state) => ({
   loading: state.loading,
 });
 
-const mapDispatchToProps = {
-  fetchJobListingsRequest,
-  fetchJobListingsSuccess,
-  fetchJobListingsFailure,
-};
+const mapDispatchToProps = (dispatch) => ({
+  fetchJobListings: (limit, offset) =>
+    dispatch(fetchJobListings(limit, offset)),
+});
 
 function JobCard({ job, openModal }) {
   if (!job) return null;
-  const { companyName, location, jobDetailsFromCompany, jobRole, minExp, maxExp, minJdSalary, maxJdSalary, salaryCurrencyCode, logoUrl } = job;
+  const {
+    companyName,
+    location,
+    jobDetailsFromCompany,
+    jobRole,
+    minExp,
+    maxExp,
+    minJdSalary,
+    maxJdSalary,
+    salaryCurrencyCode,
+    logoUrl,
+  } = job;
 
   const truncateDescription = (description) => {
-    const words = description.split(' ');
-    return words.slice(0, 25).join(' ');
+    const words = description.split(" ");
+    return words.slice(0, 25).join(" ");
   };
 
   return (
@@ -139,7 +111,8 @@ function JobCard({ job, openModal }) {
           {jobRole}
         </Typography>
         <Typography color="textSecondary" gutterBottom>
-          {companyName && `${companyName} - `}{location}
+          {companyName && `${companyName} - `}
+          {location}
         </Typography>
         {minExp && (
           <Typography variant="body2" component="p">
@@ -151,7 +124,7 @@ function JobCard({ job, openModal }) {
             Max Experience: {maxExp} years
           </Typography>
         )}
-        {(minJdSalary !== null && maxJdSalary !== null) && (
+        {minJdSalary !== null && maxJdSalary !== null && (
           <Typography variant="body2" component="p">
             Salary Range: {minJdSalary} - {maxJdSalary} {salaryCurrencyCode}
           </Typography>
@@ -161,9 +134,14 @@ function JobCard({ job, openModal }) {
             <Typography variant="body2" component="p">
               {truncateDescription(jobDetailsFromCompany)}
             </Typography>
-            {jobDetailsFromCompany.length > 25 &&
-              <span style={{ cursor: 'pointer' }} onClick={() => openModal(job)}>View More</span>
-            }
+            {jobDetailsFromCompany.length > 25 && (
+              <span
+                style={{ cursor: "pointer" }}
+                onClick={() => openModal(job)}
+              >
+                View More
+              </span>
+            )}
           </>
         )}
       </CardContent>

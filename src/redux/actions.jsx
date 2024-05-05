@@ -22,15 +22,27 @@ export const applyFilters = (filters) => ({
   payload: filters,
 });
 
-export const fetchJobListings = () => async (dispatch) => {
+export const fetchJobListings = (limit, offset) => async (dispatch) => {
   dispatch(fetchJobListingsRequest());
   try {
+    const body = JSON.stringify({ limit, offset });
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    const requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body,
+    };
+
     const response = await fetch(
-      "https://api.weekday.technology/adhoc/getSampleJdJSON"
+      "https://api.weekday.technology/adhoc/getSampleJdJSON",
+      requestOptions
     );
+
     if (!response.ok) {
       throw new Error("Failed to fetch job listings");
     }
+
     const data = await response.json();
     dispatch(fetchJobListingsSuccess(data.jdList));
   } catch (error) {
