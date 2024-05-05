@@ -20,8 +20,9 @@ function JobListingCards({ jobListings, loading, fetchJobListings }) {
   const loaderRef = useRef(null);
 
   useEffect(() => {
-    fetchJobListings(limit, offset); // Dispatch action to fetch job listings
+    fetchJobListings(limit, offset); 
   }, [fetchJobListings, limit, offset]);
+
 
   useEffect(() => {
     const options = {
@@ -45,6 +46,7 @@ function JobListingCards({ jobListings, loading, fetchJobListings }) {
   const handleObserver = (entries) => {
     const target = entries[0];
     if (target.isIntersecting) {
+      setLimit((prevLimit) => prevLimit + 5);
       setOffset((prevOffset) => prevOffset + limit);
     }
   };
