@@ -4,17 +4,24 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
 
 function JobListingCards() {
   const [jobListings, setJobListings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [limit, setLimit] = useState(10); // Initial limit
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [limit, setLimit] = useState(10);
   const [offset, setOffset] = useState(0);
   const loaderRef = useRef(null);
 
   useEffect(() => {
     fetchData();
-  }, [limit, offset]); // Fetch data whenever limit or offset changes
+  }, [limit, offset]);
 
   useEffect(() => {
     const options = {
@@ -33,12 +40,11 @@ function JobListingCards() {
         observer.unobserve(loaderRef.current);
       }
     };
-  }, []); // Add IntersectionObserver when component mounts
+  }, []);
 
   const handleObserver = (entries) => {
     const target = entries[0];
     if (target.isIntersecting) {
-      // Load more data when loader element is intersecting with viewport
       setOffset((prevOffset) => prevOffset + limit);
     }
   };
@@ -47,47 +53,61 @@ function JobListingCards() {
     setLoading(true);
     const body = JSON.stringify({ limit, offset });
     const myHeaders = new Headers();
-    myHeaders.append('Content-Type', 'application/json');
+    myHeaders.append("Content-Type", "application/json");
     const requestOptions = {
-      method: 'POST',
+      method: "POST",
       headers: myHeaders,
-      body,
+      body
     };
 
     try {
-      const response = await fetch('https://api.weekday.technology/adhoc/getSampleJdJSON', requestOptions);
+      const response = await fetch("https://api.weekday.technology/adhoc/getSampleJdJSON", requestOptions);
       if (response.ok) {
         const data = await response.json();
         setJobListings((prevListings) => [...prevListings, ...data.jdList]);
       } else {
-        console.error('Failed to fetch job listings');
+        console.error("Failed to fetch job listings");
       }
     } catch (error) {
-      console.error('Error fetching job listings:', error);
+      console.error("Error fetching job listings:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const openJobModal = (job) => {
+    setSelectedJob(job);
+    setOpenModal(true);
+  };
+
+  const closeJobModal = () => {
+    setOpenModal(false);
+  };
+
   return (
-    <Grid container spacing={4}>
+    <Grid container spacing={4}  >
       {jobListings.map((job, index) => (
-        <Grid item xs={12} sm={6} md={3} lg={3} key={index}>
-          <JobCard job={job} />
+        <Grid item xs={12} sm={6} md={3} xl={2} lg={3} key={index}>
+          <JobCard job={job} openModal={openJobModal} />
         </Grid>
       ))}
-      {loading && (
-        <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
-          <CircularProgress />
-        </Grid>
-      )}
-      <div ref={loaderRef}></div> {/* Loader element */}
+      <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center' }}>
+        {loading && <CircularProgress />}
+      </Grid>
+      <div ref={loaderRef}></div>
+      <JobModal open={openModal} onClose={closeJobModal} job={selectedJob} />
     </Grid>
   );
 }
 
-function JobCard({ job }) {
+function JobCard({ job, openModal }) {
+  if (!job) return null;
   const { companyName, location, jobDetailsFromCompany, jobRole, minExp, maxExp, minJdSalary, maxJdSalary, salaryCurrencyCode, logoUrl } = job;
+
+  const truncateDescription = (description) => {
+    const words = description.split(' ');
+    return words.slice(0, 25).join(' ');
+  };
 
   return (
     <Card>
@@ -114,12 +134,35 @@ function JobCard({ job }) {
           </Typography>
         )}
         {jobDetailsFromCompany && (
-          <Typography variant="body2" component="p">
-            Description: {jobDetailsFromCompany}
-          </Typography>
+          <>
+            <Typography variant="body2" component="p">
+              {truncateDescription(jobDetailsFromCompany)}
+            </Typography>
+            {jobDetailsFromCompany.length > 25 &&
+              <span style={{ cursor: 'pointer' }} onClick={() => openModal(job)}>View More</span>
+            }
+          </>
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function JobModal({ open, onClose, job }) {
+  if (!job || !job.jobDetailsFromCompany) return null;
+
+  const { jobDetailsFromCompany } = job;
+
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>{job.jobRole}</DialogTitle>
+      <DialogContent>
+        <Typography>{jobDetailsFromCompany}</Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
