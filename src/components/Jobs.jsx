@@ -191,19 +191,29 @@ function JobListingCards({ jobListings, loading, fetchJobListings, filters }) {
                 padding: "20px",
               }}
             >
-              <Button
-                variant="contained"
-                style={{ margin: 5 }}
-                fullWidth
-                color="primary"
-                startIcon={
-                  <span role="img" aria-label="Thunder">
-                    ⚡️
-                  </span>
-                }
+              <a
+                href={job.jdLink}
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  width: "100%",
+                }}
               >
-                Easy Apply
-              </Button>
+                <Button
+                  variant="contained"
+                  style={{ margin: 5 }}
+                  color="primary"
+                  fullWidth
+                  startIcon={
+                    <span role="img" aria-label="Thunder">
+                      ⚡️
+                    </span>
+                  }
+                >
+                  Easy Apply
+                </Button>
+              </a>
+
               <Button
                 variant="contained"
                 style={{ marginTop: 10 }}
