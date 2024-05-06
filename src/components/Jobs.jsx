@@ -237,7 +237,7 @@ function JobListingCards({ jobListings, loading, fetchJobListings, filters }) {
       >
         {" "}
         {/* Add margin top and bottom for the loader */}
-        {loading && <CircularProgress />}
+        {loading && <CircularProgress  />}
       </div>
       <JobModal open={openModal} onClose={closeJobModal} job={selectedJob} />
     </Grid>
