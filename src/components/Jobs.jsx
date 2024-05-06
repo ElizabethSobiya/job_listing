@@ -121,6 +121,9 @@ function JobListingCards({ jobListings, loading, fetchJobListings, filters }) {
                 </Typography>
               </>
             )}
+            <Typography variant="body2" component="div" style={{ marginTop: 5, }}>
+                 Minimum Experience <br /> {job.minExp} years
+                </Typography>
           </CardContent>
           <CardActions style={{display:'flex', flexDirection:'column', justifyContent: 'space-between', marginTop: 'auto', padding: '20px' }}>
             <Button variant="contained"  style={{ margin: 5,}} fullWidth color="primary"  startIcon={<span role="img" aria-label="Thunder">⚡️</span>}>Easy Apply</Button>
