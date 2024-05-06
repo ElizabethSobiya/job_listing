@@ -12,17 +12,17 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 
-function JobListingCards({ jobListings, loading, fetchJobListings }) {
+function JobListingCards({ jobListings, loading, fetchJobListings, filters }) {
   const [openModal, setOpenModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [limit, setLimit] = useState(10);
   const [offset, setOffset] = useState(0);
+  const [filteredJobListings, setFilteredJobListings] = useState([]);
   const loaderRef = useRef(null);
 
   useEffect(() => {
-    fetchJobListings(limit, offset); 
+    fetchJobListings(limit, offset);
   }, [fetchJobListings, limit, offset]);
-
 
   useEffect(() => {
     const options = {
@@ -43,13 +43,31 @@ function JobListingCards({ jobListings, loading, fetchJobListings }) {
     };
   }, []);
 
+  useEffect(() => {
+    // Reset limit and offset when filters change
+    setLimit(10);
+    setOffset(0);
+  }, [filters]);
+
   const handleObserver = (entries) => {
     const target = entries[0];
     if (target.isIntersecting) {
       setLimit((prevLimit) => prevLimit + 5);
-      setOffset((prevOffset) => prevOffset + limit);
     }
   };
+
+  useEffect(() => {
+    const newFilteredJobListings = jobListings.filter((job) => {
+      // Check if the job matches all selected filters
+      return Object.entries(filters).every(([filterKey, selectedOptions]) => {
+        if (!selectedOptions) return true; // If no options selected for a filter, include all jobs
+        return selectedOptions.some(
+          (selectedOption) => selectedOption.value === job[filterKey]
+        );
+      });
+    });
+    setFilteredJobListings(newFilteredJobListings);
+  }, [jobListings, filters]);
 
   const openJobModal = (job) => {
     setSelectedJob(job);
@@ -60,17 +78,61 @@ function JobListingCards({ jobListings, loading, fetchJobListings }) {
     setOpenModal(false);
   };
 
+  const truncateDescription = (description) => {
+    const words = description.split(" ");
+    return words.slice(0, 25).join(" ");
+  };
+
   return (
     <Grid container spacing={4}>
-      {jobListings.map((job, index) => (
+      {filteredJobListings.map((job, index) => (
         <Grid item xs={12} sm={6} md={3} xl={2} lg={3} key={index}>
-          <JobCard job={job} openModal={openJobModal} />
+          <Card>
+            <CardContent>
+              <Typography variant="h5" component="div">
+                {job.jobRole}
+              </Typography>
+              <Typography color="textSecondary" gutterBottom>
+                {job.companyName && `${job.companyName} - `}
+                {job.location}
+              </Typography>
+              {job.minExp && (
+                <Typography variant="body2" component="p">
+                  Min Experience: {job.minExp} years
+                </Typography>
+              )}
+              {job.maxExp && (
+                <Typography variant="body2" component="p">
+                  Max Experience: {job.maxExp} years
+                </Typography>
+              )}
+              {job.minJdSalary !== null && job.maxJdSalary !== null && (
+                <Typography variant="body2" component="p">
+                  Salary Range: {job.minJdSalary} - {job.maxJdSalary}{" "}
+                  {job.salaryCurrencyCode}
+                </Typography>
+              )}
+              {job.jobDetailsFromCompany && (
+                <>
+                  <Typography variant="body2" component="p">
+                    {truncateDescription(job.jobDetailsFromCompany)}
+                  </Typography>
+                  {job.jobDetailsFromCompany.length > 25 && (
+                    <span
+                      style={{ cursor: "pointer" }}
+                      onClick={() => openJobModal(job)}
+                    >
+                      View More
+                    </span>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
         </Grid>
       ))}
-      <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>
-        {loading && <CircularProgress />}
-      </Grid>
       <div ref={loaderRef}></div>
+      {loading && <CircularProgress />}
       <JobModal open={openModal} onClose={closeJobModal} job={selectedJob} />
     </Grid>
   );
@@ -79,77 +141,13 @@ function JobListingCards({ jobListings, loading, fetchJobListings }) {
 const mapStateToProps = (state) => ({
   jobListings: state.listings,
   loading: state.loading,
+  filters: state.filters,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   fetchJobListings: (limit, offset) =>
     dispatch(fetchJobListings(limit, offset)),
 });
-
-function JobCard({ job, openModal }) {
-  if (!job) return null;
-  const {
-    companyName,
-    location,
-    jobDetailsFromCompany,
-    jobRole,
-    minExp,
-    maxExp,
-    minJdSalary,
-    maxJdSalary,
-    salaryCurrencyCode,
-    logoUrl,
-  } = job;
-
-  const truncateDescription = (description) => {
-    const words = description.split(" ");
-    return words.slice(0, 25).join(" ");
-  };
-
-  return (
-    <Card>
-      <CardContent>
-        <Typography variant="h5" component="div">
-          {jobRole}
-        </Typography>
-        <Typography color="textSecondary" gutterBottom>
-          {companyName && `${companyName} - `}
-          {location}
-        </Typography>
-        {minExp && (
-          <Typography variant="body2" component="p">
-            Min Experience: {minExp} years
-          </Typography>
-        )}
-        {maxExp && (
-          <Typography variant="body2" component="p">
-            Max Experience: {maxExp} years
-          </Typography>
-        )}
-        {minJdSalary !== null && maxJdSalary !== null && (
-          <Typography variant="body2" component="p">
-            Salary Range: {minJdSalary} - {maxJdSalary} {salaryCurrencyCode}
-          </Typography>
-        )}
-        {jobDetailsFromCompany && (
-          <>
-            <Typography variant="body2" component="p">
-              {truncateDescription(jobDetailsFromCompany)}
-            </Typography>
-            {jobDetailsFromCompany.length > 25 && (
-              <span
-                style={{ cursor: "pointer" }}
-                onClick={() => openModal(job)}
-              >
-                View More
-              </span>
-            )}
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
 
 function JobModal({ open, onClose, job }) {
   if (!job || !job.jobDetailsFromCompany) return null;

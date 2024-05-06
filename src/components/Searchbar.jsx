@@ -1,70 +1,67 @@
 import React, { useState } from 'react';
-import Select from 'react-select';
+import { useSelector } from 'react-redux';
+import Select, { components } from 'react-select';
+import ClearIcon from '@mui/icons-material/Clear';
 import './style.css';
 
 function SearchFilters({ applyFilters }) {
-  const options = {
-    minExperience: [
-      { value: '0-1 years', label: '0-1 years' },
-      { value: '1-3 years', label: '1-3 years' },
-      { value: '3-5 years', label: '3-5 years' }
-    ],
-    companyName: [
-      { value: 'Company A', label: 'Company A' },
-      { value: 'Company B', label: 'Company B' },
-      { value: 'Company C', label: 'Company C' }
-    ],
-    location: [
-      { value: 'New York', label: 'New York' },
-      { value: 'San Francisco', label: 'San Francisco' },
-      { value: 'London', label: 'London' }
-    ],
-    remote: [
-      { value: 'Remote', label: 'Remote' },
-      { value: 'On-site', label: 'On-site' }
-    ],
-    techStack: [
-      { value: 'JavaScript', label: 'JavaScript' },
-      { value: 'Python', label: 'Python' },
-      { value: 'Java', label: 'Java' }
-    ],
-    role: [
-      { value: 'Frontend Developer', label: 'Frontend Developer' },
-      { value: 'Backend Developer', label: 'Backend Developer' },
-      { value: 'Full Stack Developer', label: 'Full Stack Developer' }
-    ],
-    minBasePay: [
-      { value: '4l', label: '4l' },
-      { value: '6l', label: '6l' },
-      { value: '8l', label: '8l' }
-    ]
+  const jobListings = useSelector(state => state.listings); // Assuming the Redux store has job listings data
+
+  // Function to generate options for a filter based on property name
+  const generateOptions = (property) => {
+    const uniqueValues = [...new Set(jobListings.map(job => job[property]))];
+    return uniqueValues.map(value => ({ value, label: value }));
+  };
+
+  const filterOptions = {
+    minExp: generateOptions('minExp'),
+    companyName: generateOptions('companyName'),
+    location: generateOptions('location'),
+    jobRole: generateOptions('jobRole'),
+    minJdSalary: generateOptions('minJdSalary')
   };
 
   const [selectedFilters, setSelectedFilters] = useState({});
 
   const handleChange = (selectedOptions, filterKey) => {
-    setSelectedFilters({ ...selectedFilters, [filterKey]: selectedOptions });
+    const updatedFilters = { ...selectedFilters, [filterKey]: selectedOptions };
+    setSelectedFilters(updatedFilters);
+    
+    // Check if selected options are empty, if so, reset filters to empty object
+    if (Object.values(updatedFilters).every(options => options.length === 0)) {
+      applyFilters({});
+    } else {
+      applyFilters(updatedFilters);
+    }
+    
+    console.log(updatedFilters, 'updatefilters');
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    applyFilters(selectedFilters);
+  const clearFilter = (filterKey) => {
+    setSelectedFilters(prevFilters => {
+      const updatedFilters = { ...prevFilters, [filterKey]: [] };
+      applyFilters(updatedFilters);
+      return updatedFilters;
+    });
   };
-
+  
   return (
     <div className="search-filters">
-      <form onSubmit={handleSubmit} className="filter-form">
-        {Object.keys(options).map((key) => (
+      <form className="filter-form">
+        {Object.entries(filterOptions).map(([key, options]) => (
           <div className="filter" key={key}>
             <label htmlFor={key} className={selectedFilters[key]?.length > 0 ? 'label' : 'hidden'}>{key}</label>
             <Select
               id={key}
               name={key}
-              options={options[key]}
+              options={options}
               value={selectedFilters[key]}
               onChange={(selectedOptions) => handleChange(selectedOptions, key)}
               isMulti
-              placeholder={`Select ${key}`}
+              placeholder={`${key}`}
+              components={{
+                Option: CustomOption
+              }}
             />
           </div>
         ))}
@@ -72,5 +69,19 @@ function SearchFilters({ applyFilters }) {
     </div>
   );
 }
+
+// Custom Option component to include a clear filter button
+const CustomOption = ({ children, ...props }) => (
+  <components.Option {...props}>
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div>{children}</div>
+      {props.isSelected && (
+        <button className="clear-filter-btn" onClick={() => props.data.clearFilter(props.data.filterKey)}>
+          <ClearIcon />
+        </button>
+      )}
+    </div>
+  </components.Option>
+);
 
 export default SearchFilters;

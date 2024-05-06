@@ -35,7 +35,7 @@ export const fetchJobListings = (limit, offset) => async (dispatch) => {
     };
 
     const response = await fetch(
-      `https://api.weekday.technology/adhoc/getSampleJdJSON?limit=${limit}&offset=${offset}`,
+      `https://api.weekday.technology/adhoc/getSampleJdJSON`,
       requestOptions
     );
 
