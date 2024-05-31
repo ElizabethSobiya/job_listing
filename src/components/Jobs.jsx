@@ -85,162 +85,217 @@ function JobListingCards({ jobListings, loading, fetchJobListings, filters }) {
   };
 
   return (
-    <Grid
-      container
-      spacing={3}
-      justifyContent="center"
-      style={{
-        marginLeft: "auto",
-        marginRight: "auto",
-        maxWidth: "1200px",
-        paddingLeft: "10px",
-        paddingRight: "10px",
-      }}
-    >
-      {filteredJobListings.map((job, index) => (
-        <Grid item xs={12} sm={6} md={4} key={index}>
-          <Card
-            sx={{
-              borderRadius: 5,
-              height: "100%",
-              width: "350px",
-              margin: "10px",
-            }}
+    <>
+      <Grid
+        container
+        spacing={3}
+        justifyContent="center"
+        style={{
+          marginLeft: "auto",
+          marginRight: "auto",
+          maxWidth: "1200px",
+          paddingLeft: "10px",
+          paddingRight: "10px",
+        }}
+      >
+        {filteredJobListings.map((job, index) => (
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            md={4}
+            key={index}
+            style={{ marginTop: "50px" }}
           >
-            <CardContent style={{ padding: "20px" }}>
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <img
-                  src={job.logoUrl}
-                  alt={job.companyName}
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: "50%",
-                    marginRight: 10,
-                  }}
-                />
-                <div>
-                  <Typography variant="h4" component="div">
-                    {job.companyName}
-                  </Typography>
-                  <Typography variant="h6" component="div">
-                    {job.location.toUpperCase()}
-                  </Typography>{" "}
-                  {/* Capitalize location */}
+            <Card
+              sx={{
+                borderRadius: 5,
+                height: "100%",
+                width: "350px",
+                margin: "10px",
+              }}
+            >
+              <CardContent style={{ padding: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <img
+                    src={job.logoUrl}
+                    alt={job.companyName}
+                    style={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: "50%",
+                      marginRight: 10,
+                    }}
+                  />
+                  <div>
+                    <Typography variant="h5" component="div">
+                      {job.companyName}
+                    </Typography>
+                    <Typography
+                      variant="p"
+                      style={{
+                        textTransform: "capitalize",
+                      }}
+                      component="div"
+                    >
+                      {job.location}
+                    </Typography>{" "}
+                    <Typography
+                      variant="p"
+                      component="div"
+                      style={{
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {job.jobRole}
+                    </Typography>
+                    {/* Capitalize location */}
+                  </div>
                 </div>
-              </div>
-              {job.minJdSalary !== null && job.maxJdSalary !== null && (
+                {job.minJdSalary !== null && job.maxJdSalary !== null ? (
+                  <Typography
+                    variant="body2"
+                    component="div"
+                    style={{ marginTop: 10 }}
+                  >
+                    Estimated Salary: ₹{job.minJdSalary} - {job.maxJdSalary} LPA{" "}
+                    <span role="img" aria-label="Green Tick">
+                      ✅
+                    </span>
+                  </Typography>
+                ) : (
+                  <Typography
+                    variant="body2"
+                    component="div"
+                    style={{ marginTop: 10 }}
+                  >
+                    Estimated Salary: To be disclosed{" "}
+                    <span role="img" aria-label="Confidential">
+                      🔒
+                    </span>
+                  </Typography>
+                )}
+
+                {job.jobDetailsFromCompany && (
+                  <>
+                    <Typography
+                      variant="body2"
+                      component="div"
+                      style={{ marginTop: 10, fontWeight: "bold" }}
+                    >
+                      About the Company:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      component="div"
+                      style={{ marginTop: 5, fontWeight: "bold" }}
+                    >
+                      About Us
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      component="div"
+                      style={{ marginTop: 5 }}
+                    >
+                      {truncateDescription(job.jobDetailsFromCompany)}
+                      {job.jobDetailsFromCompany.length > 25 && (
+                        <span
+                          style={{ cursor: "pointer", color: "#0096FF" }}
+                          onClick={() => openJobModal(job)}
+                        >
+                          {""} ..View More
+                        </span>
+                      )}
+                    </Typography>
+                  </>
+                )}
                 <Typography
                   variant="body2"
                   component="div"
-                  style={{ marginTop: 10 }}
+                  style={{ marginTop: 5 }}
                 >
-                  Estimated Salary: ₹{job.minJdSalary} - {job.maxJdSalary} LPA{" "}
-                  <span role="img" aria-label="Green Tick">
-                    ✅
-                  </span>
+                  Minimum Experience <br /> {job.minExp} years
                 </Typography>
-              )}
-              {job.jobDetailsFromCompany && (
-                <>
-                  <Typography
-                    variant="body2"
-                    component="div"
-                    style={{ marginTop: 10, fontWeight: "bold" }}
-                  >
-                    About the Company:
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    component="div"
-                    style={{ marginTop: 5, fontWeight: "bold" }}
-                  >
-                    About Us
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    component="div"
-                    style={{ marginTop: 5 }}
-                  >
-                    {truncateDescription(job.jobDetailsFromCompany)}
-                    {job.jobDetailsFromCompany.length > 25 && (
-                      <span
-                        style={{ cursor: "pointer", color: "blue" }}
-                        onClick={() => openJobModal(job)}
-                      >
-                        View More
-                      </span>
-                    )}
-                  </Typography>
-                </>
-              )}
-              <Typography
-                variant="body2"
-                component="div"
-                style={{ marginTop: 5 }}
-              >
-                Minimum Experience <br /> {job.minExp} years
-              </Typography>
-            </CardContent>
-            <CardActions
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                marginTop: "auto",
-                padding: "20px",
-              }}
-            >
-              <a
-                href={job.jdLink}
+              </CardContent>
+              <CardActions
                 style={{
-                  textDecoration: "none",
-                  color: "inherit",
-                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  marginTop: "auto",
+                  padding: "20px",
                 }}
               >
+                <a
+                  href={job.jdLink}
+                  style={{
+                    textDecoration: "none",
+                    width: "100%",
+                  }}
+                >
+                  <Button
+                    // variant="contained"
+                    style={{
+                      marginRight: "5px",
+                      backgroundColor: "#7FFFD4",
+                      border: "none",
+                      color: "#ffff",
+                      textTransform: "capitalize",
+                    }}
+                    // color="primary"
+                    fullWidth
+                    startIcon={
+                      <span role="img" aria-label="Thunder">
+                        ⚡️
+                      </span>
+                    }
+                  >
+                    Easy Apply
+                  </Button>
+                </a>
+
                 <Button
-                  variant="contained"
-                  style={{ margin: 5 }}
-                  color="primary"
+                  // variant="contained"
+                  style={{
+                    margin: 5,
+                    marginTop: 10,
+                    backgroundColor: "#2c0ead",
+                    border: "none",
+                    color: "#ffff",
+                    textTransform: "capitalize",
+                  }}
                   fullWidth
-                  startIcon={
-                    <span role="img" aria-label="Thunder">
-                      ⚡️
+                  // color="secondary"
+                  endIcon={
+                    <span role="img" aria-label="Unlock">
+                      🔓
                     </span>
                   }
                 >
-                  Easy Apply
+                  Unlock Referral
                 </Button>
-              </a>
+              </CardActions>
+            </Card>
+          </Grid>
+        ))}
 
-              <Button
-                variant="contained"
-                style={{ marginTop: 10 }}
-                fullWidth
-                color="secondary"
-                endIcon={
-                  <span role="img" aria-label="Unlock">
-                    🔓
-                  </span>
-                }
-              >
-                Unlock Referral
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-      ))}
+        <JobModal open={openModal} onClose={closeJobModal} job={selectedJob} />
+      </Grid>
       <div
         ref={loaderRef}
-        style={{ marginTop: "20px", marginBottom: "20px", textAlign: "center" }}
+        style={{
+          paddingTop: "200px",
+          paddingBottom: "200px",
+          textAlign: "center",
+          alignItems: "center",
+          height: "150px",
+        }}
       >
         {" "}
         {/* Add margin top and bottom for the loader */}
-        {loading && <CircularProgress  />}
+        {loading && <CircularProgress size={50} />}
       </div>
-      <JobModal open={openModal} onClose={closeJobModal} job={selectedJob} />
-    </Grid>
+    </>
   );
 }
 
@@ -262,7 +317,14 @@ function JobModal({ open, onClose, job }) {
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{job.jobRole.toUpperCase()}</DialogTitle>{" "}
+      <DialogTitle
+        style={{
+          textTransform: "capitalize",
+          textAlign: "left",
+        }}
+      >
+        {job.jobRole}
+      </DialogTitle>{" "}
       {/* Capitalize modal title */}
       <DialogContent>
         <Typography>{jobDetailsFromCompany}</Typography>

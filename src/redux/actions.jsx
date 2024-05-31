@@ -44,7 +44,7 @@ export const fetchJobListings = (limit, offset) => async (dispatch) => {
     }
 
     const data = await response.json();
-    console.log(data.jdList, "data");
+    // console.log(data.jdList, "data");
     dispatch(fetchJobListingsSuccess(data.jdList));
   } catch (error) {
     dispatch(fetchJobListingsFailure(error.message));

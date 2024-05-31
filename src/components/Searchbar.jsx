@@ -24,19 +24,23 @@ function SearchFilters({ applyFilters }) {
   const [selectedFilters, setSelectedFilters] = useState({});
 
   const handleChange = (selectedOptions, filterKey) => {
-    const updatedFilters = { ...selectedFilters, [filterKey]: selectedOptions };
-    setSelectedFilters(updatedFilters);
-
-    // Check if selected options are empty, if so, reset filters to empty object
-    if (
-      Object.values(updatedFilters).every((options) => options.length === 0)
-    ) {
-      applyFilters({});
-    } else {
-      applyFilters(updatedFilters);
+    // Clear previously selected options for the filter
+    const updatedFilters = {
+      ...selectedFilters,
+      [filterKey]: selectedOptions,
+    };
+    // Clear previously selected options for the filter
+    if (selectedOptions.length === 0) {
+      delete updatedFilters[filterKey];
     }
+    setSelectedFilters(updatedFilters);
+    // Apply filters only if at least one option is selected for any filter
+    const anyFilterSelected = Object.values(updatedFilters).some(
+      (options) => options.length > 0
+    );
+    applyFilters(anyFilterSelected ? updatedFilters : {});
+    // console.log(updatedFilters, "filters");
   };
-
   const clearFilter = (filterKey) => {
     setSelectedFilters((prevFilters) => {
       const updatedFilters = { ...prevFilters, [filterKey]: [] };
@@ -49,7 +53,13 @@ function SearchFilters({ applyFilters }) {
     <div className="search-filters">
       <form className="filter-form">
         {Object.entries(filterOptions).map(([key, options]) => (
-          <div className="filter" key={key}>
+          <div
+            className="filter"
+            key={key}
+            style={{
+              textTransform: "capitalize",
+            }}
+          >
             <label
               htmlFor={key}
               className={selectedFilters[key]?.length > 0 ? "label" : "hidden"}

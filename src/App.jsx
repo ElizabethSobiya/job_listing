@@ -1,14 +1,18 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { connect } from "react-redux";
 import { applyFilters } from "./redux/actions";
 import Searchbar from "./components/Searchbar";
-import JobCard from "./components/Jobs";
+
+// Lazy load the JobCard component
+const LazyJobCard = lazy(() => import("./components/Jobs"));
 
 function App({ applyFilters }) {
   return (
     <>
       <Searchbar applyFilters={applyFilters} />
-      <JobCard />
+      <Suspense fallback={<div>Loading...</div>}>
+        <LazyJobCard />
+      </Suspense>
     </>
   );
 }
